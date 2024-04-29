@@ -7,6 +7,7 @@ public class BankApp {
     private static List<User> users = new ArrayList<>();
 
     public static void main(String[] args) {
+        clear();
         loadUsersFromFile();
         boolean exit = false;
         while (!exit) {
@@ -29,9 +30,10 @@ public class BankApp {
                     break;
                 default:
                     System.out.println("Invalid choice!");
+                    waitAndClear();
             }
         }
-        saveUsersToFile();
+        // saveUsersToFile();
         System.out.println("Thank you for using the Bank App!");
     }
 
@@ -40,13 +42,16 @@ public class BankApp {
         String username = scanner.nextLine();
         if (isUsernameTaken(username)) {
             System.out.println("Username already exists. Please choose another one.");
+            waitAndClear();
             return;
         }
         System.out.println("Enter password:");
         String password = scanner.nextLine();
         User user = new User(username, password, 0);
         users.add(user);
-        System.out.println("Registration successful!");
+        System.out.println("Registration successful! Please login to continue.");
+        saveUsersToFile();
+        waitAndClear();
     }
 
     private static void login() {
@@ -60,10 +65,12 @@ public class BankApp {
             loggedInMenu(user);
         } else {
             System.out.println("Invalid username or password.");
+            waitAndClear();
         }
     }
 
     private static void loggedInMenu(User user) {
+        clear();
         boolean logout = false;
         while (!logout) {
             System.out.println("Welcome, " + user.getUsername() + "!");
@@ -79,16 +86,19 @@ public class BankApp {
             switch (choice) {
                 case 1:
                     System.out.println("Your balance: " + user.getBalance());
+                    waitAndClear();
                     break;
                 case 2:
                     System.out.println("Enter amount to deposit:");
                     double depositAmount = scanner.nextDouble();
                     user.deposit(depositAmount);
+                    waitAndClear();
                     break;
                 case 3:
                     System.out.println("Enter amount to withdraw:");
                     double withdrawAmount = scanner.nextDouble();
                     user.withdraw(withdrawAmount);
+                    waitAndClear();
                     break;
                 case 4:
                     System.out.println("Enter recipient's username:");
@@ -98,8 +108,10 @@ public class BankApp {
                         System.out.println("Enter amount to send:");
                         double sendAmount = scanner.nextDouble();
                         user.sendMoney(recipient, sendAmount);
+                        waitAndClear();
                     } else {
                         System.out.println("Recipient not found.");
+                        waitAndClear();
                     }
                     break;
                 case 5:
@@ -107,18 +119,25 @@ public class BankApp {
                     String newPassword = scanner.nextLine();
                     user.setPassword(newPassword);
                     System.out.println("Password changed successfully!");
+                    saveUsersToFile();
+                    waitAndClear();
                     break;
                 case 6:
                     logout = true;
+                    clear();
                     break;
                 default:
                     System.out.println("Invalid choice!");
+                    waitAndClear();
             }
         }
     }
 
     private static void loadUsersFromFile() {
-        try (Scanner fileScanner = new Scanner(new File(FILE_NAME))) {
+        File file = new File(FILE_NAME);
+
+        if (file.exists()) {
+            try (Scanner fileScanner = new Scanner(new File(FILE_NAME))) {
             while (fileScanner.hasNextLine()) {
                 String line = fileScanner.nextLine();
                 String[] parts = line.split(",");
@@ -129,7 +148,9 @@ public class BankApp {
                 users.add(user);
             }
         } catch (FileNotFoundException e) {
-            System.out.println("Users file not found. Creating new file.");
+            System.out.println("Users file not found. Try again.");
+            waitAndClear();
+        }
         }
     }
 
@@ -154,5 +175,20 @@ public class BankApp {
             }
         }
         return null;
+    }
+
+    public static void clear() {
+        System.out.print("\033[H\033[2J");
+        System.out.flush();
+    }
+    public static void waitAndClear() {
+        try {
+                        // Wait for user to press Enter
+                        System.in.read();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+        System.out.print("\033[H\033[2J");
+        System.out.flush();
     }
 }
